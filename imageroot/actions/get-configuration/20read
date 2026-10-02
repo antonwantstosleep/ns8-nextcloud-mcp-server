@@ -17,20 +17,12 @@ try:
 except Exception:
     rdb_route = {}
 
-password = ""
-secrets_path = os.path.join(os.environ.get("AGENT_STATE_DIR", "."), "secrets.env")
-if os.path.exists("secrets.env"):
-    password = agent.read_envfile("secrets.env").get("NEXTCLOUD_PASSWORD", "")
-elif os.path.exists(secrets_path):
-    password = agent.read_envfile(secrets_path).get("NEXTCLOUD_PASSWORD", "")
-
+# Nextcloud credentials are not module state. Clients send HTTP Basic Auth.
 config = {
     "host": os.getenv("TRAEFIK_HOST", ""),
     "http2https": os.getenv("TRAEFIK_HTTP2HTTPS", "True") == "True",
     "lets_encrypt": rdb_route.get("lets_encrypt", os.getenv("LETS_ENCRYPT", "False") == "True"),
     "nextcloud_host": os.getenv("NEXTCLOUD_HOST", ""),
-    "nextcloud_username": os.getenv("NEXTCLOUD_USERNAME", ""),
-    "nextcloud_password": password,
     "ollama_base_url": os.getenv("OLLAMA_BASE_URL", ""),
     "ollama_embedding_model": os.getenv("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text"),
     "enable_semantic_search": os.getenv("ENABLE_SEMANTIC_SEARCH", "true") == "true",

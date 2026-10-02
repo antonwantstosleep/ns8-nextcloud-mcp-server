@@ -82,14 +82,8 @@ nextcloud_host = normalize_http_url(data.get("nextcloud_host", ""))
 if not nextcloud_host:
     add_error("nextcloud_host", "invalid_url", data.get("nextcloud_host", ""))
 
-username = str(data.get("nextcloud_username", "")).strip()
-if not username or any(ch in username for ch in "\r\n\x00"):
-    add_error("nextcloud_username", "invalid_username")
-
-password = data.get("nextcloud_password", "")
-if not isinstance(password, str) or password == "" or any(ch in password for ch in "\r\n\x00"):
-    # Do not echo the secret back in the validation payload.
-    add_error("nextcloud_password", "invalid_password")
+# Nextcloud username and app password are not module settings. Clients send
+# them as HTTP Basic Auth. Obsolete input keys are ignored.
 
 semantic = data.get("enable_semantic_search", True)
 if not isinstance(semantic, bool):

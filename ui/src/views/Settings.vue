@@ -105,26 +105,9 @@
               ref="nextcloud_host"
             >
             </cv-text-input>
-            <cv-text-input
-              :label="$t('settings.nextcloud_username')"
-              v-model.trim="nextcloudUsername"
-              class="mg-bottom"
-              :invalid-message="error.nextcloud_username"
-              :disabled="stillLoading"
-              ref="nextcloud_username"
-            >
-            </cv-text-input>
-            <cv-text-input
-              type="password"
-              :label="$t('settings.nextcloud_password')"
-              :helper-text="$t('settings.nextcloud_password_help')"
-              v-model="nextcloudPassword"
-              class="mg-bottom"
-              :invalid-message="error.nextcloud_password"
-              :disabled="stillLoading"
-              ref="nextcloud_password"
-            >
-            </cv-text-input>
+            <p class="helper mg-bottom">
+              {{ $t("settings.client_auth_help") }}
+            </p>
             <cv-toggle
               value="semanticSearch"
               :label="$t('settings.enable_semantic_search')"
@@ -257,8 +240,6 @@ export default {
       isLetsEncryptCurrentlyEnabled: false,
       isHttpToHttpsEnabled: true,
       nextcloudHost: "",
-      nextcloudUsername: "",
-      nextcloudPassword: "",
       ollamaBaseUrl: "",
       ollamaEmbeddingModel: "nomic-embed-text",
       enableSemanticSearch: true,
@@ -275,8 +256,6 @@ export default {
         lets_encrypt: "",
         http2https: "",
         nextcloud_host: "",
-        nextcloud_username: "",
-        nextcloud_password: "",
         ollama_base_url: "",
         ollama_embedding_model: "",
         enable_semantic_search: "",
@@ -404,8 +383,6 @@ export default {
       this.isLetsEncryptCurrentlyEnabled = config.lets_encrypt;
       this.isHttpToHttpsEnabled = config.http2https;
       this.nextcloudHost = config.nextcloud_host;
-      this.nextcloudUsername = config.nextcloud_username;
-      this.nextcloudPassword = config.nextcloud_password;
       this.ollamaBaseUrl = config.ollama_base_url;
       this.ollamaEmbeddingModel =
         config.ollama_embedding_model || "nomic-embed-text";
@@ -420,8 +397,6 @@ export default {
       const required = [
         ["host", this.host],
         ["nextcloud_host", this.nextcloudHost],
-        ["nextcloud_username", this.nextcloudUsername],
-        ["nextcloud_password", this.nextcloudPassword],
       ];
       if (this.enableSemanticSearch) {
         required.push(
@@ -488,8 +463,6 @@ export default {
             lets_encrypt: this.isLetsEncryptEnabled,
             http2https: this.isHttpToHttpsEnabled,
             nextcloud_host: this.nextcloudHost,
-            nextcloud_username: this.nextcloudUsername,
-            nextcloud_password: this.nextcloudPassword,
             ollama_base_url: this.ollamaBaseUrl,
             ollama_embedding_model: this.ollamaEmbeddingModel,
             enable_semantic_search: this.enableSemanticSearch,

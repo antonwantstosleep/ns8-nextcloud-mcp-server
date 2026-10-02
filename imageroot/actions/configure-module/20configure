@@ -11,6 +11,7 @@ import sys
 from urllib.parse import urlparse
 
 import agent
+import nextcloud_mcp_auth
 
 data = json.load(sys.stdin)
 
@@ -25,7 +26,6 @@ def normalize_http_url(value):
 
 
 nextcloud_host = normalize_http_url(data["nextcloud_host"])
-nextcloud_username = str(data["nextcloud_username"]).strip()
 ollama_base_url = normalize_http_url(data.get("ollama_base_url", ""))
 ollama_model = str(data.get("ollama_embedding_model") or "nomic-embed-text").strip()
 
@@ -45,16 +45,17 @@ agent.set_env("TRAEFIK_HOST", host)
 agent.set_env("TRAEFIK_HTTP2HTTPS", http2https)
 agent.set_env("LETS_ENCRYPT", lets_encrypt)
 agent.set_env("NEXTCLOUD_HOST", nextcloud_host)
-agent.set_env("NEXTCLOUD_USERNAME", nextcloud_username)
 agent.set_env("OLLAMA_BASE_URL", ollama_base_url)
 agent.set_env("OLLAMA_EMBEDDING_MODEL", ollama_model)
 agent.set_env("ENABLE_SEMANTIC_SEARCH", "true" if semantic else "false")
 
-# Non-secret container environment. The app password stays in secrets.env.
+# Container environment for multi_user_basic. Upstream forbids
+# NEXTCLOUD_USERNAME and NEXTCLOUD_PASSWORD in this mode; each client sends
+# Authorization: Basic. A Fernet key is added to secrets.env because semantic
+# search auto-enables background operations, which require TOKEN_ENCRYPTION_KEY.
 mcp_env = {
-    "MCP_DEPLOYMENT_MODE": "single_user_basic",
+    "MCP_DEPLOYMENT_MODE": "multi_user_basic",
     "NEXTCLOUD_HOST": nextcloud_host,
-    "NEXTCLOUD_USERNAME": nextcloud_username,
     "ENABLE_SEMANTIC_SEARCH": "true" if semantic else "false",
     # Shared pod network namespace: Qdrant is the sidecar on localhost.
     "QDRANT_URL": "http://127.0.0.1:6333",
@@ -71,9 +72,11 @@ if semantic and ollama_base_url:
     mcp_env["OLLAMA_BASE_URL"] = ollama_base_url
     mcp_env["OLLAMA_VERIFY_SSL"] = "true" if parsed.scheme == "https" else "false"
 
-agent.write_envfile("mcp.env", mcp_env)
-os.chmod("mcp.env", 0o600)
+state_dir = os.environ.get("AGENT_STATE_DIR", ".")
+mcp_path = os.path.join(state_dir, "mcp.env")
+agent.write_envfile(mcp_path, mcp_env)
+os.chmod(mcp_path, 0o600)
 
-# App password is module state, never the module environment file and never git.
-agent.write_envfile("secrets.env", {"NEXTCLOUD_PASSWORD": data["nextcloud_password"]})
-os.chmod("secrets.env", 0o600)
+# Drops any previously stored Nextcloud username/password and ensures the
+# Fernet key. Input fields nextcloud_username and nextcloud_password are ignored.
+nextcloud_mcp_auth.migrate_to_multi_user_basic(state_dir, create_secrets=True)

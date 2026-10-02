@@ -21,7 +21,7 @@ Check if nextcloud-mcp-server is installed correctly
     Set Suite Variable    ${module_id}    ${output.module_id}
 
 Check if nextcloud-mcp-server can be configured
-    ${rc} =    Execute Command    api-cli run module/${module_id}/configure-module --data '{"host": "mcp.example.com", "http2https": true, "lets_encrypt": false, "nextcloud_host": "https://cloud.example.com", "nextcloud_username": "alice", "nextcloud_password": "app-password", "ollama_base_url": "http://pc01:11434", "ollama_embedding_model": "nomic-embed-text", "enable_semantic_search": true}'
+    ${rc} =    Execute Command    api-cli run module/${module_id}/configure-module --data '{"host": "mcp.example.com", "http2https": true, "lets_encrypt": false, "nextcloud_host": "https://cloud.example.com", "ollama_base_url": "http://pc01:11434", "ollama_embedding_model": "nomic-embed-text", "enable_semantic_search": true}'
     ...    return_rc=True  return_stdout=False
     Should Be Equal As Integers    ${rc}  0
 
