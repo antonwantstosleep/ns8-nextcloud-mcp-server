@@ -1,0 +1,86 @@
+{
+  "common": {
+    "required": "Обязательное поле"
+  },
+  "status": {
+    "title": "Состояние",
+    "app_instance": "Экземпляр приложения",
+    "services": "Служба | Службы",
+    "app_images": "Образ | Образы",
+    "app_volumes": "Том | Тома",
+    "installation_node": "Узел установки",
+    "node": "Узел",
+    "name": "Имя",
+    "size": "Размер",
+    "created": "Создан",
+    "mount": "Точка монтирования",
+    "no_services": "Нет служб",
+    "no_images": "Нет образов",
+    "no_volumes": "Нет томов",
+    "mcp_endpoint": "Конечная точка MCP",
+    "not_configured": "Не настроено",
+    "open_webapp": "Открыть /mcp",
+    "configure": "Настроить"
+  },
+  "settings": {
+    "title": "Настройки",
+    "save": "Сохранить",
+    "host": "Имя Traefik (FQDN)",
+    "host_placeholder": "mcp.example.com",
+    "lets_encrypt": "Сертификат Let's Encrypt",
+    "http_to_https": "Перенаправлять HTTP на HTTPS",
+    "enabled": "Включено",
+    "disabled": "Выключено",
+    "configuring": "Настройка",
+    "instance_configuration": "Настройка {instance}",
+    "domain_already_used_in_traefik": "Это имя уже занято другим маршрутом",
+    "invalid_url": "Укажите URL http или https без логина и пароля внутри адреса",
+    "invalid_username": "Укажите имя пользователя Nextcloud",
+    "invalid_password": "Укажите пароль приложения Nextcloud без переводов строки",
+    "invalid_model": "Укажите имя модели эмбеддингов без пробелов",
+    "invalid_boolean": "Выберите включено или выключено",
+    "nextcloud_host": "URL Nextcloud",
+    "nextcloud_host_placeholder": "https://cloud.example.com",
+    "nextcloud_host_help": "Базовый URL Nextcloud. Узел NS8 должен его достигать. Косая черта в конце не нужна.",
+    "nextcloud_username": "Имя пользователя Nextcloud",
+    "nextcloud_password": "Пароль приложения Nextcloud",
+    "nextcloud_password_help": "Создайте пароль приложения в Nextcloud: Настройки, Безопасность, Устройства и сеансы. Не используйте пароль входа в учётную запись.",
+    "ollama_base_url": "Базовый URL Ollama",
+    "ollama_base_url_placeholder": "http://pc01:11434",
+    "ollama_base_url_help": "Ollama работает на другом хосте. Этот модуль не запускает Ollama и не использует GPU.",
+    "ollama_embedding_model": "Модель эмбеддингов Ollama",
+    "ollama_embedding_model_help": "Модель уже должна быть загружена на хосте Ollama, например nomic-embed-text.",
+    "enable_semantic_search": "Семантический поиск",
+    "enable_semantic_search_help": "Использует Qdrant внутри этого модуля. Эмбеддинги запрашиваются у Ollama по URL выше."
+  },
+  "about": {
+    "title": "О программе"
+  },
+  "task": {
+    "cannot_create_task": "Не удалось создать задачу {action}"
+  },
+  "action": {
+    "get-status": "Получить состояние",
+    "get-configuration": "Получить конфигурацию",
+    "configure-module": "Настроить модуль",
+    "get-defaults": "Получить значения по умолчанию",
+    "get-module-info": "Получить сведения о модуле",
+    "get-name": "Получить имя",
+    "list-backup-repositories": "Список репозиториев резервных копий",
+    "list-backups": "Список резервных копий",
+    "list-installed-modules": "Список установленных модулей"
+  },
+  "error": {
+    "error": "Ошибка",
+    "generic_error": "Что-то пошло не так",
+    "validation_error": "Ошибка проверки",
+    "network_error": "Сетевая ошибка",
+    "network_timeout": "Таймаут сети",
+    "401": "Неверная аутентификация",
+    "403": "Операция не разрешена",
+    "404": "Ресурс не найден",
+    "cannot_retrieve_module_info": "Не удалось получить сведения о модуле",
+    "cannot_retrieve_installed_modules": "Не удалось получить список модулей",
+    "cannot_retrieve_configuration": "Не удалось получить конфигурацию"
+  }
+}

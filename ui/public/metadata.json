@@ -1,0 +1,19 @@
+{
+  "name": "nextcloud-mcp-server",
+  "description": {
+    "en": "Nextcloud MCP server with in-module Qdrant. Embeddings come from an external Ollama host.",
+    "ru": "MCP-сервер Nextcloud с Qdrant в модуле. Эмбеддинги считает внешний Ollama."
+  },
+  "categories": ["collaboration"],
+  "authors": [
+    {
+      "name": "Anton"
+    }
+  ],
+  "docs": {
+    "documentation_url": "https://github.com/cbcoutinho/nextcloud-mcp-server",
+    "bug_url": "https://github.com/antonwantstosleep/ns8-nextcloud-mcp-server/issues",
+    "code_url": "https://github.com/antonwantstosleep/ns8-nextcloud-mcp-server"
+  },
+  "source": "ghcr.io/antonwantstosleep/nextcloud-mcp-server"
+}

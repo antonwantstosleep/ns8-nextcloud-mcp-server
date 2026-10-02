@@ -1,0 +1,36 @@
+#
+# Copyright (C) 2026 Anton
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+#
+# Podman pod for nextcloud-mcp-server plus the in-module Qdrant sidecar.
+# Containers share this pod's network namespace, so MCP reaches Qdrant
+# at http://127.0.0.1:6333. Only the MCP HTTP port is published.
+#
+
+[Unit]
+Description=Podman nextcloud-mcp.service
+Requires=nextcloud-mcp-qdrant.service nextcloud-mcp-server.service
+Before=nextcloud-mcp-qdrant.service nextcloud-mcp-server.service
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+EnvironmentFile=-%S/state/environment
+Restart=always
+TimeoutStopSec=70
+ExecStartPre=/bin/rm -f %t/nextcloud-mcp.pid %t/nextcloud-mcp.pod-id
+ExecStartPre=/usr/bin/podman pod create --infra-conmon-pidfile %t/nextcloud-mcp.pid \
+    --pod-id-file %t/nextcloud-mcp.pod-id \
+    --name nextcloud-mcp \
+    --publish 127.0.0.1:${TCP_PORT}:8000 \
+    --network=slirp4netns:allow_host_loopback=true \
+    --replace
+ExecStart=/usr/bin/podman pod start --pod-id-file %t/nextcloud-mcp.pod-id
+ExecStop=/usr/bin/podman pod stop --ignore --pod-id-file %t/nextcloud-mcp.pod-id -t 10
+ExecStopPost=/usr/bin/podman pod rm --ignore -f --pod-id-file %t/nextcloud-mcp.pod-id
+PIDFile=%t/nextcloud-mcp.pid
+Type=forking
+
+[Install]
+WantedBy=default.target

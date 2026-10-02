@@ -1,0 +1,36 @@
+#
+# Copyright (C) 2026 Anton
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+#
+# Qdrant sidecar. Not published on the host: the MCP container reaches it
+# through the shared pod network namespace (127.0.0.1:6333).
+# Storage persists in the qdrant-storage volume (/qdrant/storage).
+#
+
+[Unit]
+Description=Podman nextcloud-mcp-qdrant.service
+BindsTo=nextcloud-mcp.service
+After=nextcloud-mcp.service
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+EnvironmentFile=%S/state/environment
+Restart=always
+TimeoutStopSec=70
+ExecStartPre=/bin/rm -f %t/nextcloud-mcp-qdrant.pid %t/nextcloud-mcp-qdrant.ctr-id
+ExecStart=/usr/bin/podman run --conmon-pidfile %t/nextcloud-mcp-qdrant.pid \
+    --cidfile %t/nextcloud-mcp-qdrant.ctr-id \
+    --cgroups=no-conmon \
+    --pod-id-file %t/nextcloud-mcp.pod-id \
+    --replace -d --name qdrant \
+    --volume qdrant-storage:/qdrant/storage:Z \
+    ${QDRANT_IMAGE}
+ExecStop=/usr/bin/podman stop --ignore --cidfile %t/nextcloud-mcp-qdrant.ctr-id -t 10
+ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/nextcloud-mcp-qdrant.ctr-id
+PIDFile=%t/nextcloud-mcp-qdrant.pid
+Type=forking
+
+[Install]
+WantedBy=default.target

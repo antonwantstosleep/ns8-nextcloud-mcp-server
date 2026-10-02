@@ -1,0 +1,86 @@
+{
+  "common": {
+    "required": "Required"
+  },
+  "status": {
+    "title": "Status",
+    "app_instance": "App instance",
+    "services": "Service | Services",
+    "app_images": "App image | App images",
+    "app_volumes": "App volume | App volumes",
+    "installation_node": "Installation node",
+    "node": "Node",
+    "name": "Name",
+    "size": "Size",
+    "created": "Created",
+    "mount": "Mount",
+    "no_services": "No services",
+    "no_images": "No images",
+    "no_volumes": "No volumes",
+    "mcp_endpoint": "MCP endpoint",
+    "not_configured": "Not configured",
+    "open_webapp": "Open /mcp",
+    "configure": "Configure"
+  },
+  "settings": {
+    "title": "Settings",
+    "save": "Save",
+    "host": "Traefik hostname (FQDN)",
+    "host_placeholder": "mcp.example.com",
+    "lets_encrypt": "Request LE Certificate",
+    "http_to_https": "Force HTTPS",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "configuring": "Configuring",
+    "instance_configuration": "Configure {instance}",
+    "domain_already_used_in_traefik": "This hostname is already used by another route",
+    "invalid_url": "Enter an http or https URL without embedded credentials",
+    "invalid_username": "Enter the Nextcloud user name",
+    "invalid_password": "Enter a Nextcloud app password without line breaks",
+    "invalid_model": "Enter an embedding model name without spaces",
+    "invalid_boolean": "Choose enabled or disabled",
+    "nextcloud_host": "Nextcloud URL",
+    "nextcloud_host_placeholder": "https://cloud.example.com",
+    "nextcloud_host_help": "Base URL of Nextcloud. The NS8 node must be able to reach it. No trailing slash needed.",
+    "nextcloud_username": "Nextcloud user name",
+    "nextcloud_password": "Nextcloud app password",
+    "nextcloud_password_help": "Create an app password in Nextcloud under Settings, Security, Devices and sessions. Do not use the account login password.",
+    "ollama_base_url": "Ollama base URL",
+    "ollama_base_url_placeholder": "http://pc01:11434",
+    "ollama_base_url_help": "Ollama runs on another host. This module does not start Ollama or a GPU.",
+    "ollama_embedding_model": "Ollama embedding model",
+    "ollama_embedding_model_help": "Must already be pulled on the Ollama host, for example nomic-embed-text.",
+    "enable_semantic_search": "Semantic search",
+    "enable_semantic_search_help": "Uses the Qdrant sidecar in this module. Embeddings are requested from the Ollama URL above."
+  },
+  "about": {
+    "title": "About"
+  },
+  "task": {
+    "cannot_create_task": "Cannot create task {action}"
+  },
+  "action": {
+    "get-status": "Get status",
+    "get-configuration": "Get configuration",
+    "configure-module": "Configure module",
+    "get-defaults": "Get defaults",
+    "get-module-info": "Get module info",
+    "get-name": "Get name",
+    "list-backup-repositories": "List backup repositories",
+    "list-backups": "List backups",
+    "list-installed-modules": "List installed modules"
+  },
+  "error": {
+    "error": "Error",
+    "generic_error": "Something went wrong",
+    "validation_error": "Validation error",
+    "network_error": "Network error",
+    "network_timeout": "Network timeout",
+    "401": "Invalid authentication",
+    "403": "Operation not authorized",
+    "404": "Resource not found",
+    "cannot_retrieve_module_info": "Cannot retrieve module info",
+    "cannot_retrieve_installed_modules": "Cannot retrieve installed modules",
+    "cannot_retrieve_configuration": "Cannot retrieve configuration"
+  }
+}

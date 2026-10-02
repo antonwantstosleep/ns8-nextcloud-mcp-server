@@ -1,0 +1,78 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "configure nextcloud-mcp-server settings",
+    "$id": "http://nethserver.org/json-schema/task/input/nextcloud-mcp-server/configure-module",
+    "description": "Configure the Nextcloud MCP server, its Traefik route, and the external Ollama embedding endpoint.",
+    "examples": [
+        {
+            "host": "mcp.example.com",
+            "http2https": true,
+            "lets_encrypt": false,
+            "nextcloud_host": "https://cloud.example.com",
+            "nextcloud_username": "alice",
+            "nextcloud_password": "app-password",
+            "ollama_base_url": "http://pc01:11434",
+            "ollama_embedding_model": "nomic-embed-text",
+            "enable_semantic_search": true
+        }
+    ],
+    "type": "object",
+    "required": [
+        "host",
+        "nextcloud_host",
+        "nextcloud_username",
+        "nextcloud_password",
+        "ollama_embedding_model"
+    ],
+    "properties": {
+        "host": {
+            "type": "string",
+            "description": "Traefik host name for the MCP endpoint, like 'mcp.example.com'",
+            "format": "hostname",
+            "pattern": "\\.",
+            "minLength": 1
+        },
+        "lets_encrypt": {
+            "type": "boolean",
+            "title": "Let's Encrypt certificate",
+            "description": "Request a valid Let's Encrypt certificate."
+        },
+        "http2https": {
+            "type": "boolean",
+            "title": "HTTP to HTTPS redirection",
+            "description": "Redirect all the HTTP requests to HTTPS"
+        },
+        "nextcloud_host": {
+            "type": "string",
+            "description": "Nextcloud base URL, without a trailing slash",
+            "format": "uri",
+            "minLength": 1
+        },
+        "nextcloud_username": {
+            "type": "string",
+            "description": "Nextcloud user name used by the MCP server",
+            "minLength": 1
+        },
+        "nextcloud_password": {
+            "type": "string",
+            "description": "Nextcloud app password (Settings, Security, Devices and sessions). Not the login password.",
+            "minLength": 1
+        },
+        "ollama_base_url": {
+            "type": "string",
+            "description": "Base URL of an external Ollama server, for example http://pc01:11434",
+            "format": "uri"
+        },
+        "ollama_embedding_model": {
+            "type": "string",
+            "description": "Ollama embedding model name. The model must already be pulled on that host.",
+            "minLength": 1,
+            "default": "nomic-embed-text"
+        },
+        "enable_semantic_search": {
+            "type": "boolean",
+            "description": "Enable Qdrant semantic search. Default is true. When true, ollama_base_url is required by the module validator.",
+            "default": true
+        }
+    }
+}

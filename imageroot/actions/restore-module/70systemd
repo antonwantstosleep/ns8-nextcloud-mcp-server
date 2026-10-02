@@ -1,0 +1,14 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2026 Anton
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+set -e
+
+# Redirect any output to the journal (stderr)
+exec 1>&2
+
+# configure-module already enables the pod; make sure it is running after restore
+systemctl --user enable --now nextcloud-mcp.service
