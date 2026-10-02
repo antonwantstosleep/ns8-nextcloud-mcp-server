@@ -1,8 +1,8 @@
 {
   "name": "nextcloud-mcp-server",
   "description": {
-    "en": "Nextcloud MCP server with in-module Qdrant. Embeddings come from an external Ollama host.",
-    "ru": "MCP-сервер Nextcloud с Qdrant в модуле. Эмбеддинги считает внешний Ollama."
+    "en": "Nextcloud MCP server with in-module Qdrant. Clients authenticate with their own Nextcloud app password. Embeddings come from an external Ollama host.",
+    "ru": "MCP-сервер Nextcloud с Qdrant в модуле. Клиенты входят своим паролем приложения Nextcloud. Эмбеддинги считает внешний Ollama."
   },
   "categories": ["collaboration"],
   "authors": [

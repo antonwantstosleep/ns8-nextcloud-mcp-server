@@ -56,6 +56,13 @@
             <div class="description">
               {{ getApplicationDescription(app) }}
             </div>
+            <div class="client-auth">
+              <h4>{{ $t("about.client_auth_title") }}</h4>
+              <p>{{ $t("about.client_auth_lead") }}</p>
+              <p>{{ $t("about.client_auth_env") }}</p>
+              <pre class="auth-example">{{ cursorMcpExample }}</pre>
+              <p>{{ $t("about.client_auth_literal") }}</p>
+            </div>
             <div class="key-value-setting">
               <span class="label">{{
                 core.$t("software_center.instance")
@@ -183,6 +190,17 @@ export default {
       urlCheckInterval: null,
       app: null,
       version: "",
+      cursorMcpExample:
+        "{\n" +
+        '  "mcpServers": {\n' +
+        '    "nextcloud": {\n' +
+        '      "url": "https://YOUR_FQDN/mcp",\n' +
+        '      "headers": {\n' +
+        '        "Authorization": "Basic ${env:NEXTCLOUD_MCP_BASIC_AUTH}"\n' +
+        "      }\n" +
+        "    }\n" +
+        "  }\n" +
+        "}",
       error: {
         moduleInfo: "",
         version: "",
@@ -305,6 +323,22 @@ export default {
 
 .description {
   margin-bottom: $spacing-07;
+}
+
+.client-auth {
+  margin-bottom: $spacing-07;
+}
+
+.client-auth p {
+  margin-bottom: $spacing-04;
+}
+
+.auth-example {
+  margin-bottom: $spacing-05;
+  padding: $spacing-04;
+  overflow-x: auto;
+  white-space: pre;
+  font-size: 0.8125rem;
 }
 
 section {

@@ -2,15 +2,13 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "configure nextcloud-mcp-server settings",
     "$id": "http://nethserver.org/json-schema/task/input/nextcloud-mcp-server/configure-module",
-    "description": "Configure the Nextcloud MCP server, its Traefik route, and the external Ollama embedding endpoint.",
+    "description": "Configure the Nextcloud MCP server, its Traefik route, and the external Ollama embedding endpoint. Clients authenticate to /mcp with HTTP Basic Auth. Nextcloud username and app password are not stored.",
     "examples": [
         {
             "host": "mcp.example.com",
             "http2https": true,
             "lets_encrypt": false,
             "nextcloud_host": "https://cloud.example.com",
-            "nextcloud_username": "alice",
-            "nextcloud_password": "app-password",
             "ollama_base_url": "http://pc01:11434",
             "ollama_embedding_model": "nomic-embed-text",
             "enable_semantic_search": true
@@ -20,8 +18,6 @@
             "http2https": true,
             "lets_encrypt": false,
             "nextcloud_host": "https://cloud.example.com",
-            "nextcloud_username": "alice",
-            "nextcloud_password": "app-password",
             "ollama_base_url": "",
             "ollama_embedding_model": "",
             "enable_semantic_search": false
@@ -30,9 +26,7 @@
     "type": "object",
     "required": [
         "host",
-        "nextcloud_host",
-        "nextcloud_username",
-        "nextcloud_password"
+        "nextcloud_host"
     ],
     "properties": {
         "host": {
@@ -60,13 +54,11 @@
         },
         "nextcloud_username": {
             "type": "string",
-            "description": "Nextcloud user name used by the MCP server",
-            "minLength": 1
+            "description": "Obsolete and ignored. Not stored. Each MCP client sends its own Nextcloud user name in an Authorization: Basic header."
         },
         "nextcloud_password": {
             "type": "string",
-            "description": "Nextcloud app password (Settings, Security, Devices and sessions). Not the login password.",
-            "minLength": 1
+            "description": "Obsolete and ignored. Not stored. Each MCP client sends its own Nextcloud app password in an Authorization: Basic header."
         },
         "ollama_base_url": {
             "type": "string",

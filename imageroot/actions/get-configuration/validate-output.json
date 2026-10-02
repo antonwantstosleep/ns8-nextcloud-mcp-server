@@ -9,8 +9,6 @@
             "http2https": true,
             "lets_encrypt": false,
             "nextcloud_host": "https://cloud.example.com",
-            "nextcloud_username": "alice",
-            "nextcloud_password": "app-password",
             "ollama_base_url": "http://pc01:11434",
             "ollama_embedding_model": "nomic-embed-text",
             "enable_semantic_search": true
@@ -22,8 +20,6 @@
         "http2https",
         "lets_encrypt",
         "nextcloud_host",
-        "nextcloud_username",
-        "nextcloud_password",
         "ollama_base_url",
         "ollama_embedding_model",
         "enable_semantic_search"
@@ -46,14 +42,6 @@
         "nextcloud_host": {
             "type": "string",
             "description": "Nextcloud base URL"
-        },
-        "nextcloud_username": {
-            "type": "string",
-            "description": "Nextcloud user name"
-        },
-        "nextcloud_password": {
-            "type": "string",
-            "description": "Nextcloud app password stored in module state"
         },
         "ollama_base_url": {
             "type": "string",

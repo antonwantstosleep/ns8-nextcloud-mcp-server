@@ -6,7 +6,8 @@
 #
 # nextcloud-mcp-server. The image ENTRYPOINT already runs
 # `nextcloud-mcp-server run --host 0.0.0.0` (port 8000, streamable-http).
-# The Nextcloud app password is injected from secrets.env, not the command line.
+# mcp.env is multi_user_basic and must not contain NEXTCLOUD_USERNAME or
+# NEXTCLOUD_PASSWORD. secrets.env holds TOKEN_ENCRYPTION_KEY only.
 #
 
 [Unit]

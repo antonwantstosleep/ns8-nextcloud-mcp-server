@@ -40,6 +40,16 @@
       </cv-column>
     </cv-row>
     <cv-row>
+      <cv-column>
+        <NsInlineNotification
+          kind="info"
+          :title="$t('status.client_auth_title')"
+          :description="$t('status.client_auth_description')"
+          :showCloseButton="false"
+        />
+      </cv-column>
+    </cv-row>
+    <cv-row>
       <cv-column :md="4" :max="4">
         <NsInfoCard
           light

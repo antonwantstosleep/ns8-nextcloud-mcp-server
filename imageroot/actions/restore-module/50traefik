@@ -14,10 +14,8 @@ import agent
 request = json.load(sys.stdin)
 renv = request["environment"]
 
-password = ""
-if os.path.exists("secrets.env"):
-    password = agent.read_envfile("secrets.env").get("NEXTCLOUD_PASSWORD", "")
-
+# configure-module drops any Nextcloud credentials restored with the backup
+# and rewrites mcp.env as multi_user_basic.
 configure_retval = agent.tasks.run(
     agent_id=os.environ["AGENT_ID"],
     action="configure-module",
@@ -26,8 +24,6 @@ configure_retval = agent.tasks.run(
         "http2https": renv.get("TRAEFIK_HTTP2HTTPS", "True") == "True",
         "lets_encrypt": renv.get("LETS_ENCRYPT", "False") == "True",
         "nextcloud_host": renv.get("NEXTCLOUD_HOST", ""),
-        "nextcloud_username": renv.get("NEXTCLOUD_USERNAME", ""),
-        "nextcloud_password": password,
         "ollama_base_url": renv.get("OLLAMA_BASE_URL", ""),
         "ollama_embedding_model": renv.get("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text"),
         "enable_semantic_search": renv.get("ENABLE_SEMANTIC_SEARCH", "true") == "true",
