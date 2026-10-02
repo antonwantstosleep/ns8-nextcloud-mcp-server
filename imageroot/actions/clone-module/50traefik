@@ -1,0 +1,9 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2026 Anton
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+# Re-apply the Traefik route with the same inputs as restore.
+exec "$(dirname "$0")/../restore-module/50traefik"

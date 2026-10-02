@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2026 Anton
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import sys
+
+config = {
+    "http2https": True,
+    "lets_encrypt": False,
+    "ollama_embedding_model": "nomic-embed-text",
+    "enable_semantic_search": True,
+}
+
+json.dump(config, fp=sys.stdout)

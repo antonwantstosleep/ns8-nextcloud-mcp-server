@@ -1,0 +1,39 @@
+#
+# Copyright (C) 2026 Anton
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+#
+# nextcloud-mcp-server. The image ENTRYPOINT already runs
+# `nextcloud-mcp-server run --host 0.0.0.0` (port 8000, streamable-http).
+# The Nextcloud app password is injected from secrets.env, not the command line.
+#
+
+[Unit]
+Description=Podman nextcloud-mcp-server.service
+BindsTo=nextcloud-mcp.service
+After=nextcloud-mcp.service nextcloud-mcp-qdrant.service
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+EnvironmentFile=%S/state/environment
+WorkingDirectory=%S/state
+Restart=always
+TimeoutStopSec=70
+ExecStartPre=/bin/rm -f %t/nextcloud-mcp-server.pid %t/nextcloud-mcp-server.ctr-id
+ExecStart=/usr/bin/podman run --conmon-pidfile %t/nextcloud-mcp-server.pid \
+    --cidfile=%t/nextcloud-mcp-server.ctr-id \
+    --cgroups=no-conmon \
+    --pod-id-file=%t/nextcloud-mcp.pod-id \
+    --replace -d --name=mcp \
+    --env-file=%S/state/mcp.env \
+    --env-file=%S/state/secrets.env \
+    --volume mcp-data:/app/data:Z \
+    ${NEXTCLOUD_MCP_SERVER_IMAGE}
+ExecStop=/usr/bin/podman stop --ignore --cidfile %t/nextcloud-mcp-server.ctr-id -t 10
+ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/nextcloud-mcp-server.ctr-id
+PIDFile=%t/nextcloud-mcp-server.pid
+Type=forking
+
+[Install]
+WantedBy=default.target

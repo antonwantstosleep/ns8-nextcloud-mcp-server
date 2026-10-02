@@ -1,0 +1,71 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Get nextcloud-mcp-server settings",
+    "$id": "http://nethserver.org/json-schema/task/output/nextcloud-mcp-server/get-configuration",
+    "description": "Get nextcloud-mcp-server settings",
+    "examples": [
+        {
+            "host": "mcp.example.com",
+            "http2https": true,
+            "lets_encrypt": false,
+            "nextcloud_host": "https://cloud.example.com",
+            "nextcloud_username": "alice",
+            "nextcloud_password": "app-password",
+            "ollama_base_url": "http://pc01:11434",
+            "ollama_embedding_model": "nomic-embed-text",
+            "enable_semantic_search": true
+        }
+    ],
+    "type": "object",
+    "required": [
+        "host",
+        "http2https",
+        "lets_encrypt",
+        "nextcloud_host",
+        "nextcloud_username",
+        "nextcloud_password",
+        "ollama_base_url",
+        "ollama_embedding_model",
+        "enable_semantic_search"
+    ],
+    "properties": {
+        "host": {
+            "type": "string",
+            "description": "Traefik host name for the MCP endpoint, like 'mcp.example.com'"
+        },
+        "lets_encrypt": {
+            "type": "boolean",
+            "title": "Let's Encrypt certificate",
+            "description": "Request a valid Let's Encrypt certificate."
+        },
+        "http2https": {
+            "type": "boolean",
+            "title": "HTTP to HTTPS redirection",
+            "description": "Redirect all the HTTP requests to HTTPS"
+        },
+        "nextcloud_host": {
+            "type": "string",
+            "description": "Nextcloud base URL"
+        },
+        "nextcloud_username": {
+            "type": "string",
+            "description": "Nextcloud user name"
+        },
+        "nextcloud_password": {
+            "type": "string",
+            "description": "Nextcloud app password stored in module state"
+        },
+        "ollama_base_url": {
+            "type": "string",
+            "description": "External Ollama base URL"
+        },
+        "ollama_embedding_model": {
+            "type": "string",
+            "description": "Ollama embedding model name"
+        },
+        "enable_semantic_search": {
+            "type": "boolean",
+            "description": "Whether semantic search against the in-module Qdrant sidecar is enabled"
+        }
+    }
+}

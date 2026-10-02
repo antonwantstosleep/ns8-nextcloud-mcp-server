@@ -1,0 +1,40 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "nextcloud-mcp-server defaults",
+    "$id": "http://nethserver.org/json-schema/task/output/nextcloud-mcp-server/get-defaults",
+    "description": "Default configuration values for a new nextcloud-mcp-server instance",
+    "examples": [
+        {
+            "http2https": true,
+            "lets_encrypt": false,
+            "ollama_embedding_model": "nomic-embed-text",
+            "enable_semantic_search": true
+        }
+    ],
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "http2https",
+        "lets_encrypt",
+        "ollama_embedding_model",
+        "enable_semantic_search"
+    ],
+    "properties": {
+        "http2https": {
+            "type": "boolean",
+            "description": "Redirect HTTP to HTTPS by default"
+        },
+        "lets_encrypt": {
+            "type": "boolean",
+            "description": "Request a Let's Encrypt certificate by default"
+        },
+        "ollama_embedding_model": {
+            "type": "string",
+            "description": "Default Ollama embedding model"
+        },
+        "enable_semantic_search": {
+            "type": "boolean",
+            "description": "Semantic search is on unless the admin turns it off"
+        }
+    }
+}

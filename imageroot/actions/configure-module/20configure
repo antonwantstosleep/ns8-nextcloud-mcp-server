@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2026 Anton
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import os
+import sys
+from urllib.parse import urlparse
+
+import agent
+
+data = json.load(sys.stdin)
+
+host = data["host"]
+http2https = data.get("http2https", True)
+lets_encrypt = data.get("lets_encrypt", False)
+semantic = data.get("enable_semantic_search", True)
+
+
+def normalize_http_url(value):
+    return str(value or "").strip().rstrip("/")
+
+
+nextcloud_host = normalize_http_url(data["nextcloud_host"])
+nextcloud_username = str(data["nextcloud_username"]).strip()
+ollama_base_url = normalize_http_url(data.get("ollama_base_url", ""))
+ollama_model = str(data.get("ollama_embedding_model") or "nomic-embed-text").strip()
+
+# Traefik publishes the pod's localhost MCP port. Clients use https://<host>/mcp.
+set_route_data = {
+    "instance": os.environ["MODULE_ID"],
+    "url": "http://127.0.0.1:" + os.environ["TCP_PORT"],
+    "host": host,
+    "http2https": http2https,
+    "lets_encrypt": lets_encrypt,
+    "lets_encrypt_check": True,
+    "lets_encrypt_cleanup": True,
+}
+agent.set_route(set_route_data)
+
+agent.set_env("TRAEFIK_HOST", host)
+agent.set_env("TRAEFIK_HTTP2HTTPS", http2https)
+agent.set_env("LETS_ENCRYPT", lets_encrypt)
+agent.set_env("NEXTCLOUD_HOST", nextcloud_host)
+agent.set_env("NEXTCLOUD_USERNAME", nextcloud_username)
+agent.set_env("OLLAMA_BASE_URL", ollama_base_url)
+agent.set_env("OLLAMA_EMBEDDING_MODEL", ollama_model)
+agent.set_env("ENABLE_SEMANTIC_SEARCH", "true" if semantic else "false")
+
+# Non-secret container environment. The app password stays in secrets.env.
+mcp_env = {
+    "MCP_DEPLOYMENT_MODE": "single_user_basic",
+    "NEXTCLOUD_HOST": nextcloud_host,
+    "NEXTCLOUD_USERNAME": nextcloud_username,
+    "ENABLE_SEMANTIC_SEARCH": "true" if semantic else "false",
+    # Shared pod network namespace: Qdrant is the sidecar on localhost.
+    "QDRANT_URL": "http://127.0.0.1:6333",
+    "OLLAMA_EMBEDDING_MODEL": ollama_model,
+    "TOKEN_STORAGE_DB": "/app/data/tokens.db",
+    # Keep fastembed / Hugging Face downloads on the persistent mcp-data volume.
+    "HF_HOME": "/app/data/huggingface",
+    "XDG_CACHE_HOME": "/app/data/cache",
+}
+if ollama_base_url:
+    parsed = urlparse(ollama_base_url)
+    mcp_env["OLLAMA_BASE_URL"] = ollama_base_url
+    mcp_env["OLLAMA_VERIFY_SSL"] = "true" if parsed.scheme == "https" else "false"
+
+agent.write_envfile("mcp.env", mcp_env)
+os.chmod("mcp.env", 0o600)
+
+# App password is module state, never the module environment file and never git.
+agent.write_envfile("secrets.env", {"NEXTCLOUD_PASSWORD": data["nextcloud_password"]})
+os.chmod("secrets.env", 0o600)

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2026 Anton
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+# Stop the pod before the core removes the module user. Ignore failure when
+# the instance was never configured.
+systemctl --user disable --now nextcloud-mcp.service || :
