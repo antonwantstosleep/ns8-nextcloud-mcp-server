@@ -64,7 +64,9 @@ mcp_env = {
     "HF_HOME": "/app/data/huggingface",
     "XDG_CACHE_HOME": "/app/data/cache",
 }
-if ollama_base_url:
+# Persist the URL in module state even when semantic search is off, but do not
+# point the container at Ollama unless the feature is enabled.
+if semantic and ollama_base_url:
     parsed = urlparse(ollama_base_url)
     mcp_env["OLLAMA_BASE_URL"] = ollama_base_url
     mcp_env["OLLAMA_VERIFY_SSL"] = "true" if parsed.scheme == "https" else "false"

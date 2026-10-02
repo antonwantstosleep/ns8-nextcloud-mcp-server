@@ -42,8 +42,8 @@ Settings:
 
 - Traefik hostname, HTTP-to-HTTPS redirect, and an optional Let's Encrypt certificate
 - Nextcloud URL, user name, and an **app password** (Nextcloud: Settings → Security → Devices & sessions). The login password will not work.
-- Ollama base URL and embedding model. Pull the model on the GPU host first: `ollama pull nomic-embed-text`
-- Semantic search, on by default
+- Ollama base URL and embedding model. Required only while semantic search is enabled. A hostname does not need a dot (`http://pc01:11434` is valid). Pull the model on the GPU host first: `ollama pull nomic-embed-text`
+- Semantic search, on by default. While it is off, an empty or previously saved Ollama URL and model do not block Save
 
 The NS8 node must be able to reach both Nextcloud and Ollama. Qdrant is not exposed on the node; the MCP container talks to it inside the pod.
 
@@ -82,7 +82,8 @@ Semantic search env written for the MCP container:
 
 - `ENABLE_SEMANTIC_SEARCH=true` (unless disabled in settings)
 - `QDRANT_URL=http://127.0.0.1:6333`
-- `OLLAMA_BASE_URL` and `OLLAMA_EMBEDDING_MODEL` from settings
+- `OLLAMA_EMBEDDING_MODEL` from settings
+- `OLLAMA_BASE_URL` from settings, written into the container environment only when semantic search is enabled. The value is still stored in module state when the feature is off, so the form can show it again
 - `MCP_DEPLOYMENT_MODE=single_user_basic`
 - `NEXTCLOUD_HOST`, `NEXTCLOUD_USERNAME`, `NEXTCLOUD_PASSWORD`
 

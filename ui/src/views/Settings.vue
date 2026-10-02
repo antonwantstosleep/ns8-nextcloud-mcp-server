@@ -142,27 +142,29 @@
             <p class="helper mg-bottom">
               {{ $t("settings.enable_semantic_search_help") }}
             </p>
-            <cv-text-input
-              :label="$t('settings.ollama_base_url')"
-              :placeholder="$t('settings.ollama_base_url_placeholder')"
-              :helper-text="$t('settings.ollama_base_url_help')"
-              v-model.trim="ollamaBaseUrl"
-              class="mg-bottom"
-              :invalid-message="error.ollama_base_url"
-              :disabled="stillLoading"
-              ref="ollama_base_url"
-            >
-            </cv-text-input>
-            <cv-text-input
-              :label="$t('settings.ollama_embedding_model')"
-              :helper-text="$t('settings.ollama_embedding_model_help')"
-              v-model.trim="ollamaEmbeddingModel"
-              class="mg-bottom"
-              :invalid-message="error.ollama_embedding_model"
-              :disabled="stillLoading"
-              ref="ollama_embedding_model"
-            >
-            </cv-text-input>
+            <template v-if="enableSemanticSearch">
+              <cv-text-input
+                :label="$t('settings.ollama_base_url')"
+                :placeholder="$t('settings.ollama_base_url_placeholder')"
+                :helper-text="$t('settings.ollama_base_url_help')"
+                v-model.trim="ollamaBaseUrl"
+                class="mg-bottom"
+                :invalid-message="error.ollama_base_url"
+                :disabled="stillLoading"
+                ref="ollama_base_url"
+              >
+              </cv-text-input>
+              <cv-text-input
+                :label="$t('settings.ollama_embedding_model')"
+                :helper-text="$t('settings.ollama_embedding_model_help')"
+                v-model.trim="ollamaEmbeddingModel"
+                class="mg-bottom"
+                :invalid-message="error.ollama_embedding_model"
+                :disabled="stillLoading"
+                ref="ollama_embedding_model"
+              >
+              </cv-text-input>
+            </template>
             <cv-row v-if="error.configureModule">
               <cv-column>
                 <NsInlineNotification
@@ -294,6 +296,14 @@ export default {
       );
     },
   },
+  watch: {
+    enableSemanticSearch(enabled) {
+      if (!enabled) {
+        this.error.ollama_base_url = "";
+        this.error.ollama_embedding_model = "";
+      }
+    },
+  },
   created() {
     this.getConfiguration();
     this.getStatus();
@@ -412,10 +422,12 @@ export default {
         ["nextcloud_host", this.nextcloudHost],
         ["nextcloud_username", this.nextcloudUsername],
         ["nextcloud_password", this.nextcloudPassword],
-        ["ollama_embedding_model", this.ollamaEmbeddingModel],
       ];
       if (this.enableSemanticSearch) {
-        required.push(["ollama_base_url", this.ollamaBaseUrl]);
+        required.push(
+          ["ollama_base_url", this.ollamaBaseUrl],
+          ["ollama_embedding_model", this.ollamaEmbeddingModel]
+        );
       }
       for (const [field, value] of required) {
         if (!value) {
