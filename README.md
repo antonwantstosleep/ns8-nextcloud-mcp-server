@@ -4,7 +4,7 @@ Personal NS8 module that runs [cbcoutinho/nextcloud-mcp-server](https://github.c
 
 Module image: `ghcr.io/antonwantstosleep/nextcloud-mcp-server`
 
-Module version **0.1.1** (`ui/package.json`). Image tags follow that version; the previous release is git tag `0.1.0`.
+Module version **0.1.2** (`ui/package.json`). Image tags follow that version; the previous release is git tag `0.1.1`.
 
 The module wrapper is GPL-3.0-or-later. The upstream MCP server is AGPL-3.0.
 
