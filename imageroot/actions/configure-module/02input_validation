@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
+import ipaddress
 import json
 import os
 import sys
@@ -39,6 +40,44 @@ def normalize_http_url(value):
     return candidate
 
 
+def _dns_label(label):
+    if not label or len(label) > 63:
+        return False
+    if label[0] == "-" or label[-1] == "-":
+        return False
+    return all(ch.isalnum() or ch == "-" for ch in label)
+
+
+def endpoint_host(host):
+    """Hostname (single-label names included), IPv4, or IPv6."""
+    if not host or len(host) > 253:
+        return False
+    try:
+        ipaddress.ip_address(host)
+        return True
+    except ValueError:
+        pass
+    return all(_dns_label(label) for label in host.split("."))
+
+
+def normalize_ollama_url(value):
+    # Same shape as a Nextcloud URL, plus an explicit host check so
+    # http://pc01:11434 is accepted. JSON Schema format "uri" is not used:
+    # the NS8 agent accepts that URL, but it also rejects "" and surrounding
+    # whitespace, and it applied the check even when semantic search was off.
+    candidate = normalize_http_url(value)
+    if not candidate:
+        return None
+    parsed = urlparse(candidate)
+    try:
+        port = parsed.port
+    except ValueError:
+        return None
+    if port == 0 or not endpoint_host(parsed.hostname):
+        return None
+    return candidate
+
+
 nextcloud_host = normalize_http_url(data.get("nextcloud_host", ""))
 if not nextcloud_host:
     add_error("nextcloud_host", "invalid_url", data.get("nextcloud_host", ""))
@@ -56,16 +95,16 @@ semantic = data.get("enable_semantic_search", True)
 if not isinstance(semantic, bool):
     add_error("enable_semantic_search", "invalid_boolean", semantic)
 
-ollama_raw = data.get("ollama_base_url", "")
-ollama_url = normalize_http_url(ollama_raw) if str(ollama_raw).strip() else ""
-if semantic and not ollama_url:
-    add_error("ollama_base_url", "invalid_url", ollama_raw)
-elif str(ollama_raw).strip() and not ollama_url:
-    add_error("ollama_base_url", "invalid_url", ollama_raw)
+# Ollama is only used when semantic search is on. A previous URL or model
+# must not block Save after the toggle is turned off.
+if semantic is True:
+    ollama_raw = data.get("ollama_base_url", "")
+    if not normalize_ollama_url(ollama_raw):
+        add_error("ollama_base_url", "invalid_url", ollama_raw)
 
-model = str(data.get("ollama_embedding_model", "")).strip()
-if not model or any(ch.isspace() for ch in model):
-    add_error("ollama_embedding_model", "invalid_model", model)
+    model = str(data.get("ollama_embedding_model", "")).strip()
+    if not model or any(ch.isspace() for ch in model):
+        add_error("ollama_embedding_model", "invalid_model", model)
 
 if errors:
     agent.set_status("validation-failed")

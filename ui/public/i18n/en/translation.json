@@ -51,7 +51,7 @@
     "ollama_embedding_model": "Ollama embedding model",
     "ollama_embedding_model_help": "Must already be pulled on the Ollama host, for example nomic-embed-text.",
     "enable_semantic_search": "Semantic search",
-    "enable_semantic_search_help": "Uses the Qdrant sidecar in this module. Embeddings are requested from the Ollama URL above."
+    "enable_semantic_search_help": "Uses the Qdrant sidecar in this module. The Ollama URL and embedding model are required only while this is enabled."
   },
   "about": {
     "title": "About"

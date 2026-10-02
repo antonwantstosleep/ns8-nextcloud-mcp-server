@@ -51,7 +51,7 @@
     "ollama_embedding_model": "Модель эмбеддингов Ollama",
     "ollama_embedding_model_help": "Модель уже должна быть загружена на хосте Ollama, например nomic-embed-text.",
     "enable_semantic_search": "Семантический поиск",
-    "enable_semantic_search_help": "Использует Qdrant внутри этого модуля. Эмбеддинги запрашиваются у Ollama по URL выше."
+    "enable_semantic_search_help": "Использует Qdrant внутри этого модуля. URL Ollama и модель эмбеддингов обязательны только когда поиск включен."
   },
   "about": {
     "title": "О программе"

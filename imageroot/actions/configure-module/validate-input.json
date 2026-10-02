@@ -14,6 +14,17 @@
             "ollama_base_url": "http://pc01:11434",
             "ollama_embedding_model": "nomic-embed-text",
             "enable_semantic_search": true
+        },
+        {
+            "host": "mcp.example.com",
+            "http2https": true,
+            "lets_encrypt": false,
+            "nextcloud_host": "https://cloud.example.com",
+            "nextcloud_username": "alice",
+            "nextcloud_password": "app-password",
+            "ollama_base_url": "",
+            "ollama_embedding_model": "",
+            "enable_semantic_search": false
         }
     ],
     "type": "object",
@@ -21,8 +32,7 @@
         "host",
         "nextcloud_host",
         "nextcloud_username",
-        "nextcloud_password",
-        "ollama_embedding_model"
+        "nextcloud_password"
     ],
     "properties": {
         "host": {
@@ -60,18 +70,16 @@
         },
         "ollama_base_url": {
             "type": "string",
-            "description": "Base URL of an external Ollama server, for example http://pc01:11434",
-            "format": "uri"
+            "description": "Base URL of an external Ollama server, for example http://pc01:11434. Not validated while enable_semantic_search is false. When semantic search is on, the module validator requires http(s)://host[:port] where host is a hostname (a dot is not required), an IPv4 address, or an IPv6 address."
         },
         "ollama_embedding_model": {
             "type": "string",
-            "description": "Ollama embedding model name. The model must already be pulled on that host.",
-            "minLength": 1,
+            "description": "Ollama embedding model name. The model must already be pulled on that host. Required only when enable_semantic_search is true.",
             "default": "nomic-embed-text"
         },
         "enable_semantic_search": {
             "type": "boolean",
-            "description": "Enable Qdrant semantic search. Default is true. When true, ollama_base_url is required by the module validator.",
+            "description": "Enable Qdrant semantic search. Default is true. When true, ollama_base_url and ollama_embedding_model are required by the module validator. When false, both may be empty or kept from an earlier save.",
             "default": true
         }
     }
