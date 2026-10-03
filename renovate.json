@@ -1,0 +1,115 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":disableDependencyDashboard",
+    ":enableVulnerabilityAlerts",
+    ":automergePatch"
+  ],
+  "osvVulnerabilityAlerts": true,
+  "minimumReleaseAge": "5 days",
+  "branchPrefix": "renovate-",
+  "branchNameStrict": true,
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "ignoreDeps": [
+      "vue"
+    ]
+  },
+  "rebaseWhen": "automerging",
+  "keepUpdatedLabel": "auto-update",
+  "packageRules": [
+    {
+      "description": "Enable digest pinning only for Debian and Ubuntu base images",
+      "matchManagers": [
+        "dockerfile"
+      ],
+      "matchDepNames": [
+        "docker.io/library/debian",
+        "docker.io/library/ubuntu"
+      ],
+      "matchFileNames": [
+        "(^|/)Containerfile$",
+        "(^|/)Dockerfile$"
+      ],
+      "pinDigests": true,
+      "automerge": true
+    },
+    {
+      "matchDatasources": [
+        "npm"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "enabled": false,
+      "description": "Disable major version upgrades for all npm packages. Useful to avoid major updates of Vue ecosystem and Carbon."
+    },
+    {
+      "description": "Disable updates for Vue CLI monorepo packages to avoid node and @achrinza/node-ipc compatibility issues",
+      "enabled": false,
+      "matchPackageNames": [
+        "/^@vue/cli-/",
+        "/@vue/cli/"
+      ]
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "groupName": "Debian/Ubuntu packages",
+      "groupSlug": "deb-update",
+      "matchStringsStrategy": "recursive",
+      "matchStrings": [
+        "#\\s*renovate-debian:\\s*(suite=(?<suite>.*))?[\\s\\S]+",
+        "(?:^|\\s)(?<depName>[a-z0-9][a-z0-9+._-]+?)=(?<currentValue>[0-9]+[^\\s]*?)(?:\\s|\\\\|$)"
+      ],
+      "datasourceTemplate": "deb",
+      "versioningTemplate": "deb",
+      "registryUrlTemplate": "https://deb.debian.org/debian?suite={{#if suite }}{{suite}}{{else}}stable{{/if}}&components=main,contrib,non-free&binaryArch=amd64",
+      "managerFilePatterns": [
+        "/(^|/)Containerfile$/",
+        "/(^|/)Dockerfile$/"
+      ]
+    },
+    {
+      "customType": "regex",
+      "groupName": "Debian/Ubuntu packages",
+      "groupSlug": "deb-update",
+      "matchStringsStrategy": "recursive",
+      "matchStrings": [
+        "#\\s*renovate-ubuntu:\\s*(suite=(?<suite>.*))?[\\s\\S]+",
+        "(?:^|\\s)(?<depName>[a-z0-9][a-z0-9+._-]+?)=(?<currentValue>[0-9]+[^\\s]*?)(?:\\s|\\\\|$)"
+      ],
+      "datasourceTemplate": "deb",
+      "versioningTemplate": "deb",
+      "registryUrlTemplate": "https://archive.ubuntu.com/ubuntu?suite={{#if suite }}{{suite}}{{else}}noble{{/if}}&components=main,universe,restricted,multiverse&binaryArch=amd64",
+      "managerFilePatterns": [
+        "/(^|/)Containerfile$/",
+        "/(^|/)Dockerfile$/"
+      ]
+    },
+    {
+      "customType": "regex",
+      "matchStrings": [
+        "docker\\.io\\/(?:library\\/)?(?<depName>[-0-9a-z_\\/.]+):(?<currentValue>[-0-9a-zA-Z_.]+)(@(?<currentDigest>sha256:[0-9a-f]+))?",
+        "(?<depName>(?:ghcr|quay)\\.io\\/[-0-9a-z_\\/.]+):(?<currentValue>[-0-9a-zA-Z_.]+)(@(?<currentDigest>sha256:[0-9a-f]+))?"
+      ],
+      "datasourceTemplate": "docker",
+      "managerFilePatterns": [
+        "/(^|/)build-images?\\.sh$/"
+      ]
+    },
+    {
+      "customType": "regex",
+      "description": "Bump *_version/*_VERSION shell variables annotated with a `# renovate: datasource=... packageName=...` comment",
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-z-]+?) packageName=(?<packageName>.+?)\\s*\\n\\s*\\w+_version=(?<currentValue>\\S+)",
+        "# renovate: datasource=(?<datasource>[a-z-]+?) packageName=(?<packageName>.+?)\\s*\\n\\s*\\w+_VERSION=(?<currentValue>\\S+)"
+      ],
+      "managerFilePatterns": [
+        "/(^|/)build-images?\\.sh$/"
+      ]
+    }
+  ]
+}
