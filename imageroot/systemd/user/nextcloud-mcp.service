@@ -6,13 +6,14 @@
 #
 # Podman pod for nextcloud-mcp-server plus the in-module Qdrant sidecar.
 # Containers share this pod's network namespace, so MCP reaches Qdrant
-# at http://127.0.0.1:6333. Only the MCP HTTP port is published.
+# at http://127.0.0.1:6333. Only port 8000 is published, and that is the
+# auth gate. The MCP server listens on 127.0.0.1:8001 and is not published.
 #
 
 [Unit]
 Description=Podman nextcloud-mcp.service
-Requires=nextcloud-mcp-qdrant.service nextcloud-mcp-server.service
-Before=nextcloud-mcp-qdrant.service nextcloud-mcp-server.service
+Requires=nextcloud-mcp-qdrant.service nextcloud-mcp-server.service nextcloud-mcp-auth-gate.service
+Before=nextcloud-mcp-qdrant.service nextcloud-mcp-server.service nextcloud-mcp-auth-gate.service
 
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
