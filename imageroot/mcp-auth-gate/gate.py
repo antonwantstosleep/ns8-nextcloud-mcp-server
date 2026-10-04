@@ -18,8 +18,9 @@ green server with the full tool list.
 This process is the only listener on the published pod port. The MCP server
 listens on 127.0.0.1:8001 and is not published. Protected requests are proxied
 only after Nextcloud accepts the same Authorization header
-(GET {NEXTCLOUD_HOST}/ocs/v2.php/cloud/user). The user name and app password
-are not written anywhere. A process-local HMAC cache stores digests, not
+(GET {NEXTCLOUD_HOST}/ocs/v2.php/cloud/user). OCS v1 success is meta
+statuscode 100; /ocs/v2.php success is meta statuscode 200. The user name
+and app password are not written anywhere. A process-local HMAC cache stores digests, not
 credentials, so a handshake does not repeat the OCS call.
 
 /health, /health/live, and /health/ready stay open. Everything else, including
@@ -224,8 +225,28 @@ def ocs_user_path(nextcloud_host: str) -> tuple[str, str, int, str] | None:
     return parsed.scheme, parsed.hostname, port, prefix + "/ocs/v2.php/cloud/user"
 
 
+def ocs_meta_success(code: object) -> bool:
+    """True when an OCS user probe meta statuscode means authenticated.
+
+    OCS v1 reports success as 100. Nextcloud ``/ocs/v2.php`` (including
+    Nextcloud 33) reports success as 200. Either value may be a JSON number
+    or a string. Other types, including bool, are not success.
+    """
+    if type(code) is int:
+        return code in (100, 200)
+    if type(code) is str:
+        return code in ("100", "200")
+    return False
+
+
 def check_nextcloud(nextcloud_host: str, authorization: str, timeout: float = OCS_TIMEOUT) -> str:
-    """Return ok, rejected, or unavailable. Does not follow redirects."""
+    """Return ok, rejected, or unavailable. Does not follow redirects.
+
+    HTTP 200 plus meta statuscode 100 or 200 is success. HTTP 200 with any
+    other statuscode, and client errors such as 401, are denials. Redirects,
+    404, and 5xx are unavailable so a transient Nextcloud failure is not
+    cached as a rejected password.
+    """
     target = ocs_user_path(nextcloud_host)
     if target is None:
         logger.warning("NEXTCLOUD_HOST is missing or not an http(s) URL")
@@ -273,7 +294,7 @@ def check_nextcloud(nextcloud_host: str, authorization: str, timeout: float = OC
         code = payload["ocs"]["meta"]["statuscode"]
     except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError, AttributeError):
         return "rejected"
-    if code == 100 or code == "100":
+    if ocs_meta_success(code):
         return "ok"
     return "rejected"
 
