@@ -1,0 +1,41 @@
+name: Dispatch Software Center reindex
+
+# A version tag such as 0.1.4 publishes a stable image. Ask ns8-repo to
+# rebuild repodata.json. A push to main publishes only the testing image
+# and does not run this workflow.
+#
+# This is separate from publish-images.yml so a missing
+# NS8_REPO_DISPATCH_TOKEN cannot fail the image build. GITHUB_TOKEN cannot
+# start a workflow in another repository. When the secret is absent this
+# run fails.
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+permissions: {}
+
+jobs:
+  dispatch-reindex:
+    name: Dispatch ns8-repo reindex
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start ns8-repo reindex
+        env:
+          NS8_REPO_DISPATCH_TOKEN: ${{ secrets.NS8_REPO_DISPATCH_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${NS8_REPO_DISPATCH_TOKEN}" ]; then
+            echo "NS8_REPO_DISPATCH_TOKEN is not set"
+            exit 1
+          fi
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${NS8_REPO_DISPATCH_TOKEN}" \
+            --header "Content-Type: application/json" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --data '{"ref":"main"}' \
+            "https://api.github.com/repos/antonwantstosleep/ns8-repo/actions/workflows/reindex.yml/dispatches"
+          echo "Dispatched reindex.yml on antonwantstosleep/ns8-repo ref main"
