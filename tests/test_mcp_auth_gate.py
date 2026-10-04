@@ -120,6 +120,114 @@ def parse_response(data):
     return status, headers, body
 
 
+def ocs_user_body(statuscode, message="OK"):
+    success = statuscode in (100, "100", 200, "200")
+    return json.dumps(
+        {
+            "ocs": {
+                "meta": {
+                    "status": "ok" if success else "failure",
+                    "statuscode": statuscode,
+                    "message": message,
+                },
+                "data": {"id": ALICE} if success else [],
+            }
+        }
+    ).encode()
+
+
+def _http_response(status_line, body):
+    raw = body if isinstance(body, bytes) else body.encode()
+    head = (
+        f"HTTP/1.1 {status_line}\r\n"
+        "Content-Type: application/json\r\n"
+        f"Content-Length: {len(raw)}\r\n"
+        "Connection: close\r\n\r\n"
+    )
+    return head.encode("ascii") + raw
+
+
+async def ocs_verdict(status_line, body):
+    async def handler(reader, writer):
+        try:
+            await read_request(reader)
+            writer.write(_http_response(status_line, body))
+            await writer.drain()
+        finally:
+            writer.close()
+
+    server = await asyncio.start_server(handler, "127.0.0.1", 0)
+    port = server.sockets[0].getsockname()[1]
+    try:
+        return await asyncio.to_thread(
+            gate.check_nextcloud,
+            f"http://127.0.0.1:{port}",
+            basic(ALICE, GOOD),
+        )
+    finally:
+        server.close()
+        await server.wait_closed()
+
+
+async def proxy_ocs_probe(status_line, body, cache_ttl=60, negative_ttl=30):
+    """POST /mcp through a gate whose Nextcloud probe returns status_line/body."""
+    seen = {"mcp": 0}
+    auth = basic(ALICE, GOOD)
+
+    async def ocs_client(reader, writer):
+        try:
+            line, headers, _body = await read_request(reader)
+            seen["request"] = line
+            seen["authorization"] = header_value(headers, "authorization")
+            writer.write(_http_response(status_line, body))
+            await writer.drain()
+        finally:
+            writer.close()
+
+    async def mcp_client(reader, writer):
+        try:
+            await read_request(reader)
+            seen["mcp"] += 1
+            writer.write(http_ok(INIT_RESULT, extra=b"Mcp-Session-Id: session-1\r\n"))
+            await writer.drain()
+        finally:
+            writer.close()
+
+    ocs = await asyncio.start_server(ocs_client, "127.0.0.1", 0)
+    mcp = await asyncio.start_server(mcp_client, "127.0.0.1", 0)
+    ready = asyncio.Event()
+    bound = {}
+    cache = gate.AuthCache(cache_ttl, negative_ttl)
+    task = asyncio.create_task(
+        gate.serve(
+            "127.0.0.1",
+            0,
+            "127.0.0.1",
+            mcp.sockets[0].getsockname()[1],
+            f"http://127.0.0.1:{ocs.sockets[0].getsockname()[1]}",
+            cache=cache,
+            ready=ready,
+            bound=bound,
+        )
+    )
+    try:
+        await asyncio.wait_for(ready.wait(), 2)
+        raw = await exchange(
+            bound["port"],
+            request_bytes("POST", "/mcp", INIT, authorization=auth),
+        )
+        status, _headers, response = parse_response(raw)
+        return status, response, seen, cache, auth
+    finally:
+        task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await task
+        ocs.close()
+        mcp.close()
+        await ocs.wait_closed()
+        await mcp.wait_closed()
+
+
 def request_bytes(method, target, body=b"", authorization=None, chunked=False):
     lines = [f"{method} {target} HTTP/1.1", "Host: mcp.example.com", "Accept: application/json, text/event-stream"]
     if authorization is not None:
@@ -509,6 +617,90 @@ class GateBehaviorTests(unittest.IsolatedAsyncioTestCase):
             server.close()
             await server.wait_closed()
 
+    async def test_ocs_v2_statuscode_200_is_accepted_and_proxied(self):
+        """Nextcloud 33 /ocs/v2.php success is HTTP 200 and meta statuscode 200.
+
+        Accepting only OCS v1 statuscode 100 classifies that probe as a denial
+        and answers 401 even though Nextcloud already accepted the app password.
+        """
+        for statuscode in (200, "200"):
+            with self.subTest(statuscode=repr(statuscode)):
+                status, body, seen, cache, auth = await proxy_ocs_probe(
+                    "200 OK", ocs_user_body(statuscode)
+                )
+                self.assertEqual(status, 200)
+                self.assertEqual(body, INIT_RESULT)
+                self.assertEqual(seen["mcp"], 1)
+                self.assertTrue(seen["request"].startswith("GET /ocs/v2.php/cloud/user "))
+                self.assertEqual(seen["authorization"], auth)
+                self.assertIs(cache.get(auth), True)
+                self.assertNotIn(GOOD, json.dumps(cache.entries))
+                self.assertNotIn(GOOD.encode(), body)
+
+    async def test_ocs_v1_statuscode_100_is_still_accepted_and_proxied(self):
+        for statuscode in (100, "100"):
+            with self.subTest(statuscode=repr(statuscode)):
+                status, body, seen, cache, auth = await proxy_ocs_probe(
+                    "200 OK", ocs_user_body(statuscode)
+                )
+                self.assertEqual(status, 200)
+                self.assertEqual(body, INIT_RESULT)
+                self.assertEqual(seen["mcp"], 1)
+                self.assertIs(cache.get(auth), True)
+                self.assertNotIn(GOOD, json.dumps(cache.entries))
+
+    async def test_http_200_other_statuscode_is_401_and_not_cached_as_success(self):
+        for statuscode in (997, "997", 401, "401", 0):
+            with self.subTest(statuscode=repr(statuscode)):
+                status, body, seen, cache, auth = await proxy_ocs_probe(
+                    "200 OK",
+                    ocs_user_body(statuscode, message="Current user is not logged in"),
+                )
+                self.assertEqual(status, 401)
+                self.assertIn(b"Nextcloud rejected the credentials", body)
+                self.assertEqual(seen["mcp"], 0)
+                self.assertIs(cache.get(auth), False)
+                self.assertNotIn(GOOD, json.dumps(cache.entries))
+                self.assertNotIn(GOOD.encode(), body)
+
+    async def test_http_401_is_rejected_even_when_body_statuscode_is_200(self):
+        status, body, seen, cache, auth = await proxy_ocs_probe(
+            "401 Unauthorized", ocs_user_body(200)
+        )
+        self.assertEqual(status, 401)
+        self.assertIn(b"Nextcloud rejected the credentials", body)
+        self.assertNotIn(b"Could not validate credentials with Nextcloud", body)
+        self.assertEqual(seen["mcp"], 0)
+        self.assertIs(cache.get(auth), False)
+
+    async def test_redirect_5xx_and_404_stay_unavailable(self):
+        # A success-shaped body must not turn these into an accept or a denial.
+        success_body = ocs_user_body(200)
+        for status_line in (
+            "301 Moved Permanently",
+            "302 Found",
+            "303 See Other",
+            "307 Temporary Redirect",
+            "308 Permanent Redirect",
+            "404 Not Found",
+            "500 Internal Server Error",
+            "503 Service Unavailable",
+        ):
+            with self.subTest(status_line=status_line):
+                self.assertEqual(await ocs_verdict(status_line, success_body), "unavailable")
+
+        for status_line in ("404 Not Found", "500 Internal Server Error"):
+            with self.subTest(gate=status_line):
+                status, body, seen, cache, auth = await proxy_ocs_probe(
+                    status_line, success_body
+                )
+                self.assertEqual(status, 502)
+                self.assertIn(b"Could not validate credentials with Nextcloud", body)
+                self.assertNotIn(b"Nextcloud rejected the credentials", body)
+                self.assertEqual(seen["mcp"], 0)
+                self.assertIsNone(cache.get(auth))
+                self.assertNotIn(GOOD, json.dumps(cache.entries))
+
 
 def socket_port():
     import socket
@@ -519,6 +711,12 @@ def socket_port():
 
 
 class GateUnitTests(unittest.TestCase):
+    def test_ocs_meta_success_accepts_v1_100_and_v2_200_only(self):
+        for code in (100, "100", 200, "200"):
+            self.assertTrue(gate.ocs_meta_success(code), repr(code))
+        for code in (True, False, 200.0, 100.0, "200 ", " 100", 997, "997", None, 0, "ok"):
+            self.assertFalse(gate.ocs_meta_success(code), repr(code))
+
     def test_basic_parser_and_health_allowlist(self):
         self.assertIsNone(gate.parse_basic(None))
         self.assertIsNone(gate.parse_basic("Bearer token"))
