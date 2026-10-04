@@ -11,6 +11,11 @@
 # mcp.env supplies NEXTCLOUD_HOST. This unit does not load secrets.env
 # and must not receive NEXTCLOUD_USERNAME or NEXTCLOUD_PASSWORD.
 #
+# extract-image installs the module tree at %E (AGENT_INSTALL_DIR,
+# ~/.config for this rootless module). gate.py is therefore
+# %E/mcp-auth-gate/gate.py. The image prefix /imageroot is stripped
+# at install time and is not a path on the node.
+#
 
 [Unit]
 Description=Podman nextcloud-mcp-auth-gate.service
@@ -24,7 +29,7 @@ WorkingDirectory=%S/state
 Restart=always
 TimeoutStopSec=20
 ExecStartPre=/bin/rm -f %t/nextcloud-mcp-auth-gate.pid %t/nextcloud-mcp-auth-gate.ctr-id
-ExecStartPre=/bin/cp -f /imageroot/mcp-auth-gate/gate.py %S/state/mcp-auth-gate.py
+ExecStartPre=/bin/cp -f %E/mcp-auth-gate/gate.py %S/state/mcp-auth-gate.py
 ExecStartPre=/bin/chmod 0644 %S/state/mcp-auth-gate.py
 ExecStart=/usr/bin/podman run --conmon-pidfile %t/nextcloud-mcp-auth-gate.pid \
     --cidfile=%t/nextcloud-mcp-auth-gate.ctr-id \
