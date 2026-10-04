@@ -4,8 +4,10 @@
 #
 
 #
-# nextcloud-mcp-server. The image ENTRYPOINT already runs
-# `nextcloud-mcp-server run --host 0.0.0.0` (port 8000, streamable-http).
+# nextcloud-mcp-server. The image ENTRYPOINT listens on 0.0.0.0:8000.
+# Override that: this container listens on 127.0.0.1:8001 and is not
+# published. nextcloud-mcp-auth-gate.service owns the published port and
+# rejects /mcp unless Nextcloud accepts the client's Basic credentials.
 # mcp.env is multi_user_basic and must not contain NEXTCLOUD_USERNAME or
 # NEXTCLOUD_PASSWORD. secrets.env holds TOKEN_ENCRYPTION_KEY only.
 #
@@ -30,7 +32,9 @@ ExecStart=/usr/bin/podman run --conmon-pidfile %t/nextcloud-mcp-server.pid \
     --env-file=%S/state/mcp.env \
     --env-file=%S/state/secrets.env \
     --volume mcp-data:/app/data:Z \
-    ${NEXTCLOUD_MCP_SERVER_IMAGE}
+    --entrypoint /opt/venv/bin/nextcloud-mcp-server \
+    ${NEXTCLOUD_MCP_SERVER_IMAGE} \
+    run --host 127.0.0.1 --port 8001
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/nextcloud-mcp-server.ctr-id -t 10
 ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/nextcloud-mcp-server.ctr-id
 PIDFile=%t/nextcloud-mcp-server.pid

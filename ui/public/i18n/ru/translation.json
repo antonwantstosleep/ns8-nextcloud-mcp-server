@@ -22,7 +22,7 @@
     "open_webapp": "Открыть /mcp",
     "configure": "Настроить",
     "client_auth_title": "Аутентификация клиентов",
-    "client_auth_description": "Клиенты MCP передают на /mcp HTTP Basic Auth: имя пользователя Nextcloud и пароль приложения (Настройки, Безопасность, Устройства и сеансы). Без этого заголовка серверу не от чьего имени ходить в Nextcloud. Модуль эти данные не хранит. Браузер их не отправит. Пример для Cursor — на странице «О программе»."
+    "client_auth_description": "Клиенты MCP передают на /mcp HTTP Basic Auth: имя пользователя Nextcloud и пароль приложения (Настройки, Безопасность, Устройства и сеансы). Клиент только с URL получает HTTP 401 до списка инструментов, и Cursor показывает ошибку, а не подключённый сервер. Модуль эти данные не хранит. Пример для Cursor — на странице «О программе»."
   },
   "settings": {
     "title": "Настройки",
@@ -42,7 +42,7 @@
     "nextcloud_host": "URL Nextcloud",
     "nextcloud_host_placeholder": "https://cloud.example.com",
     "nextcloud_host_help": "Базовый URL Nextcloud. Узел NS8 должен его достигать. Косая черта в конце не нужна.",
-    "client_auth_help": "Модуль не хранит имя пользователя Nextcloud и пароль приложения. Каждый клиент MCP передаёт HTTP Basic Auth (имя и пароль приложения) на /mcp. Пароль приложения создаётся в Nextcloud: Настройки, Безопасность, Устройства и сеансы. Не используйте пароль входа.",
+    "client_auth_help": "Модуль не хранит имя пользователя Nextcloud и пароль приложения. Каждый клиент MCP передаёт HTTP Basic Auth (имя и пароль приложения) на /mcp. Соединение отклоняется, если заголовка нет или Nextcloud его не принимает. Пароль приложения создаётся в Nextcloud: Настройки, Безопасность, Устройства и сеансы. Не используйте пароль входа.",
     "ollama_base_url": "Базовый URL Ollama",
     "ollama_base_url_placeholder": "http://pc01:11434",
     "ollama_base_url_help": "Ollama работает на другом хосте. Этот модуль не запускает Ollama и не использует GPU.",
@@ -54,7 +54,7 @@
   "about": {
     "title": "О программе",
     "client_auth_title": "Подключение Cursor",
-    "client_auth_lead": "Укажите в Cursor адрес https://YOUR_FQDN/mcp. Каждый запрос требует HTTP Basic Auth: имя пользователя Nextcloud и пароль приложения в виде base64 от строки user:app_password. Этот секрет нельзя коммитить.",
+    "client_auth_lead": "Укажите в Cursor адрес https://YOUR_FQDN/mcp и передавайте HTTP Basic Auth в каждом запросе, включая рукопожатие со списком инструментов. Конфиг только с URL отклоняется с HTTP 401, и Cursor показывает ошибку. Заголовок — это имя пользователя Nextcloud и пароль приложения в виде base64 от строки user:app_password. Этот секрет нельзя коммитить.",
     "client_auth_env": "Cursor подставляет ${env:NAME} в url и заголовках mcp.json. Экспортируйте NEXTCLOUD_MCP_BASIC_AUTH как base64-токен в окружение процесса Cursor. Значение только из профиля shell не видно, если Cursor запущен из меню. Предпочтительный конфиг:",
     "client_auth_literal": "Литеральный заголовок тоже работает: Authorization: Basic BASE64_OF_user:app_password. Лучше переменная окружения, чтобы пароль приложения не попал в mcp.json."
   },

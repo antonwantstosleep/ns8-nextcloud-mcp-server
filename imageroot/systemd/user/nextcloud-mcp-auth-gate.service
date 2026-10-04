@@ -1,0 +1,49 @@
+#
+# Copyright (C) 2026 Anton
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+#
+# Auth gate in front of nextcloud-mcp-server. Same image, different
+# entrypoint: Python stdlib only, it does not load the MCP application.
+# Listens on 0.0.0.0:8000, which is the pod's published port. Proxies to
+# 127.0.0.1:8001 after Nextcloud accepts Authorization: Basic.
+# mcp.env supplies NEXTCLOUD_HOST. This unit does not load secrets.env
+# and must not receive NEXTCLOUD_USERNAME or NEXTCLOUD_PASSWORD.
+#
+
+[Unit]
+Description=Podman nextcloud-mcp-auth-gate.service
+BindsTo=nextcloud-mcp.service
+After=nextcloud-mcp.service nextcloud-mcp-server.service
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+EnvironmentFile=%S/state/environment
+WorkingDirectory=%S/state
+Restart=always
+TimeoutStopSec=20
+ExecStartPre=/bin/rm -f %t/nextcloud-mcp-auth-gate.pid %t/nextcloud-mcp-auth-gate.ctr-id
+ExecStartPre=/bin/cp -f /imageroot/mcp-auth-gate/gate.py %S/state/mcp-auth-gate.py
+ExecStartPre=/bin/chmod 0644 %S/state/mcp-auth-gate.py
+ExecStart=/usr/bin/podman run --conmon-pidfile %t/nextcloud-mcp-auth-gate.pid \
+    --cidfile=%t/nextcloud-mcp-auth-gate.ctr-id \
+    --cgroups=no-conmon \
+    --pod-id-file=%t/nextcloud-mcp.pod-id \
+    --replace -d --name=mcp-auth-gate \
+    --env-file=%S/state/mcp.env \
+    --env PYTHONDONTWRITEBYTECODE=1 \
+    --env PYTHONUNBUFFERED=1 \
+    --env MCP_AUTH_GATE_UPSTREAM=http://127.0.0.1:8001 \
+    --env MCP_AUTH_GATE_LISTEN=0.0.0.0:8000 \
+    --volume %S/state/mcp-auth-gate.py:/mcp-auth-gate.py:ro,Z \
+    --entrypoint /opt/venv/bin/python \
+    ${NEXTCLOUD_MCP_SERVER_IMAGE} \
+    /mcp-auth-gate.py
+ExecStop=/usr/bin/podman stop --ignore --cidfile %t/nextcloud-mcp-auth-gate.ctr-id -t 10
+ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/nextcloud-mcp-auth-gate.ctr-id
+PIDFile=%t/nextcloud-mcp-auth-gate.pid
+Type=forking
+
+[Install]
+WantedBy=default.target

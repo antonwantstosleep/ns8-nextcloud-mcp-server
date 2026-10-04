@@ -22,7 +22,7 @@
     "open_webapp": "Open /mcp",
     "configure": "Configure",
     "client_auth_title": "Client authentication",
-    "client_auth_description": "MCP clients must send HTTP Basic Auth on /mcp: a Nextcloud user name and an app password (Settings, Security, Devices and sessions). Without that header the server has no Nextcloud account to use. This module does not store those credentials. A browser will not send them. The Cursor example is on the About page."
+    "client_auth_description": "MCP clients must send HTTP Basic Auth on /mcp: a Nextcloud user name and an app password (Settings, Security, Devices and sessions). A client with only the URL gets HTTP 401 before any tool list, so Cursor shows an error instead of a connected server. This module does not store those credentials. The Cursor example is on the About page."
   },
   "settings": {
     "title": "Settings",
@@ -42,7 +42,7 @@
     "nextcloud_host": "Nextcloud URL",
     "nextcloud_host_placeholder": "https://cloud.example.com",
     "nextcloud_host_help": "Base URL of Nextcloud. The NS8 node must be able to reach it. No trailing slash needed.",
-    "client_auth_help": "This module does not store a Nextcloud user name or app password. Each MCP client sends HTTP Basic Auth (user name and app password) to /mcp. Create the app password in Nextcloud under Settings, Security, Devices and sessions. Do not use the account login password.",
+    "client_auth_help": "This module does not store a Nextcloud user name or app password. Each MCP client sends HTTP Basic Auth (user name and app password) on /mcp. The connection is rejected when that header is missing or Nextcloud does not accept it. Create the app password in Nextcloud under Settings, Security, Devices and sessions. Do not use the account login password.",
     "ollama_base_url": "Ollama base URL",
     "ollama_base_url_placeholder": "http://pc01:11434",
     "ollama_base_url_help": "Ollama runs on another host. This module does not start Ollama or a GPU.",
@@ -54,7 +54,7 @@
   "about": {
     "title": "About",
     "client_auth_title": "Connecting Cursor",
-    "client_auth_lead": "Point Cursor at https://YOUR_FQDN/mcp. Each request needs HTTP Basic Auth: the Nextcloud user name and an app password, as base64 of user:app_password. Do not commit that secret.",
+    "client_auth_lead": "Point Cursor at https://YOUR_FQDN/mcp and send HTTP Basic Auth on every request, including the handshake that lists tools. A config with only the URL is rejected with HTTP 401, and Cursor shows an error. The header is the Nextcloud user name and an app password, as base64 of user:app_password. Do not commit that secret.",
     "client_auth_env": "Cursor substitutes ${env:NAME} in mcp.json url and headers. Export NEXTCLOUD_MCP_BASIC_AUTH as the base64 token in the environment the Cursor process can see. A value set only in a shell profile is invisible when Cursor is launched from the desktop menu. Preferred config:",
     "client_auth_literal": "A literal header also works: Authorization: Basic BASE64_OF_user:app_password. Prefer the environment variable so the app password is not written into mcp.json."
   },
