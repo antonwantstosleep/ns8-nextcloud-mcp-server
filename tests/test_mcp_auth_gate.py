@@ -10,6 +10,8 @@ import base64
 import contextlib
 import json
 import logging
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -553,7 +555,8 @@ class GateUnitTests(unittest.TestCase):
         self.assertNotIn("NEXTCLOUD_USERNAME", exec_start)
         self.assertIn("MCP_AUTH_GATE_LISTEN=0.0.0.0:8000", gate_unit)
         self.assertIn("MCP_AUTH_GATE_UPSTREAM=http://127.0.0.1:8001", gate_unit)
-        self.assertIn("/imageroot/mcp-auth-gate/gate.py", gate_unit)
+        self.assertIn("%E/mcp-auth-gate/gate.py", gate_unit)
+        self.assertNotIn("/imageroot/mcp-auth-gate/gate.py", gate_unit)
         self.assertIn("chmod 0644", gate_unit)
         self.assertIn("nextcloud-mcp-auth-gate.service", pod)
         publish = [line for line in pod.splitlines() if "--publish" in line]
@@ -568,6 +571,71 @@ class GateUnitTests(unittest.TestCase):
             ROOT / "imageroot" / "actions" / "configure-module" / "validate-input.json"
         ).read_text()
         self.assertIn("Not stored", schema)
+
+    def test_packaged_install_root_contains_gate(self):
+        """extract-image must leave gate.py where the unit copies it from.
+
+        build-images.sh adds the whole imageroot directory. NS8 then runs
+        extract-image, which unpacks that directory with the imageroot
+        prefix stripped into the module install dir (%E). A unit that
+        copies /imageroot/mcp-auth-gate/gate.py looks for a path that
+        exists only inside the image, so cp fails and the pod is torn down.
+        """
+        build = (ROOT / "build-images.sh").read_text()
+        self.assertIn('buildah add "${container}" imageroot /imageroot', build)
+
+        gate_unit = (
+            ROOT / "imageroot" / "systemd" / "user" / "nextcloud-mcp-auth-gate.service"
+        ).read_text()
+        copies = [
+            line.split("ExecStartPre=", 1)[1].strip()
+            for line in gate_unit.splitlines()
+            if line.startswith("ExecStartPre=/bin/cp ") and "gate.py" in line
+        ]
+        self.assertEqual(
+            copies,
+            ["/bin/cp -f %E/mcp-auth-gate/gate.py %S/state/mcp-auth-gate.py"],
+        )
+        source_spec = copies[0].split()[2]
+
+        with tempfile.TemporaryDirectory() as tmp:
+            archive = Path(tmp) / "image.tar"
+            install = Path(tmp) / "install"
+            install.mkdir()
+            subprocess.run(
+                ["tar", "-cf", str(archive), "-C", str(ROOT), "imageroot"],
+                check=True,
+            )
+            # Same filters as ns8-core usr/local/agent/bin/extract-image.
+            subprocess.run(
+                [
+                    "tar",
+                    "--no-overwrite-dir",
+                    "--no-same-owner",
+                    "--exclude-caches-under",
+                    "--exclude=.gitignore",
+                    "--strip-components=1",
+                    "-x",
+                    "-f",
+                    str(archive),
+                    "-C",
+                    str(install),
+                    "imageroot",
+                ],
+                check=True,
+            )
+            installed = install / "mcp-auth-gate" / "gate.py"
+            self.assertTrue(installed.is_file(), "gate.py missing from packaged install root")
+            self.assertGreater(installed.stat().st_size, 0)
+            self.assertEqual(
+                installed.read_bytes(),
+                (ROOT / "imageroot" / "mcp-auth-gate" / "gate.py").read_bytes(),
+            )
+            self.assertTrue(
+                (install / "systemd" / "user" / "nextcloud-mcp-auth-gate.service").is_file()
+            )
+            resolved = Path(source_spec.replace("%E", str(install)))
+            self.assertEqual(resolved.resolve(), installed.resolve())
 
 
 if __name__ == "__main__":
